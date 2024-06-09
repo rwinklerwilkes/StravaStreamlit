@@ -2,15 +2,45 @@ import csv
 import fitparse
 import gzip
 import os
-from gpxcsv import gpxtolist
-from tqdm import tqdm
-from dateutil import parser
 import pytz
 import datetime
 
+from tcxreader.tcxreader import TCXReader, TCXTrackPoint
+from gpxcsv import gpxtolist
+from dateutil import parser
+
+import functools
+
+
+def debug(func):
+    """Print the function signature and return value"""
+
+    @functools.wraps(func)
+    def wrapper_debug(*args, **kwargs):
+        fn = args[0]
+        try:
+            value = func(*args, **kwargs)
+        except Exception as e:
+            print(f'Failed for file: {fn}')
+            raise e
+        return value
+
+    return wrapper_debug
+
+
+def get_paths():
+    paths = {'raw': '../data/raw',
+             'processed': '../data/processed',
+             'metadata': '../data/metadata'}
+    for _, folder in paths.items():
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+    return paths
+
+
 def standardize_time(timestamp):
-    #expected format:
-    #2012-07-30 17:54:08+00:00
+    # expected format:
+    # 2012-07-30 17:54:08+00:00
     if timestamp is None:
         return timestamp
     if isinstance(timestamp, datetime.datetime):
@@ -25,31 +55,42 @@ def standardize_time(timestamp):
     output = est_date.strftime('%Y-%m-%d %H:%M:%S')
     return output
 
+
 def get_expected_format():
-    return ('time','distance','lat','lon','elev','power','cadence','heart_rate')
+    return ('time', 'distance', 'lat', 'lon', 'elev', 'power', 'cadence', 'heart_rate')
+
 
 def parse_gzip(filename):
-    with gzip.open(f'../data/raw/{filename}', 'rb') as f:
+    raw = get_paths()['raw']
+    with gzip.open(f'{raw}/{filename}', 'rb') as f:
         file_content = f.read()
     return file_content
 
+
 def write_output(filename, output, track_name):
+    paths = get_paths()
     output_filename = filename.split('.')[0]
-    with open(f'../data/processed/{output_filename}.csv','w',newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    processed = paths['processed']
+    with open(f'{processed}/{output_filename}.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerows(output)
 
-    with open(f'../data/metadata/processed_files.csv', 'a', newline='') as csvfile:
+    metadata = paths['metadata']
+    with open(f'{metadata}/processed_files.csv', 'a', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerow([filename, output_filename, track_name])
 
+
+@debug
 def parse_gpx(filename):
-    gpx_list = gpxtolist(f'../data/raw/{filename}')
+    raw = get_paths()['raw']
+    gpx_list = gpxtolist(f'{raw}/{filename}')
     track_name = None
+    output = []
     for point in gpx_list:
         if not track_name:
             track_name = point.get('name')
-        assert get_expected_format() == ('time','distance','lat','lon','elev','power','cadence','heart_rate')
+        assert get_expected_format() == ('time', 'distance', 'lat', 'lon', 'elev', 'power', 'cadence', 'heart_rate')
         output.append([standardize_time(point.get('time')),
                        point.get('distance'),
                        point.get('lat'),
@@ -60,8 +101,11 @@ def parse_gpx(filename):
                        point.get('heart_rate')])
     write_output(filename, output, track_name)
 
+
+@debug
 def parse_fit(filename, content=None):
-    fitfile = fitparse.FitFile(f'../data/raw/{filename}')
+    raw = get_paths()['raw']
+    fitfile = fitparse.FitFile(f'{raw}/{filename}')
     output = []
     track_name = filename.split('.')[0]
     for record in fitfile.get_messages("record"):
@@ -78,7 +122,7 @@ def parse_fit(filename, content=None):
             elif data.name == 'timestamp':
                 value = standardize_time(data.value)
                 use = True
-            elif data.name in ['distance','power', 'cadence', 'heart_rate']:
+            elif data.name in ['distance', 'power', 'cadence', 'heart_rate']:
                 value = data.value
                 use = True
             elif data.name == 'altitude':
@@ -90,7 +134,7 @@ def parse_fit(filename, content=None):
                     use = True
             if use:
                 row_output[data.name] = value
-        assert get_expected_format() == ('time','distance','lat','lon','elev','power','cadence','heart_rate')
+        assert get_expected_format() == ('time', 'distance', 'lat', 'lon', 'elev', 'power', 'cadence', 'heart_rate')
         final_row_output = [row_output['timestamp'],
                             row_output.get('distance', None),
                             row_output.get('position_lat', None),
@@ -102,12 +146,28 @@ def parse_fit(filename, content=None):
         output.append(final_row_output)
     write_output(filename, output, track_name)
 
+
+# Some of the TCX files have extra spaces at the beginning of each line - this will fix those
+def preprocess_tcx(filename):
+    raw = get_paths()['raw']
+    with open(f'{raw}/{filename}', 'r') as f:
+        line_lst = [line.lstrip() for line in f.readlines()]
+        lines = ''.join(line_lst)
+    with open(f'{raw}/{filename}', 'w') as f:
+        f.write(lines)
+
+
+@debug
 def parse_tcx(filename):
-    data = tcx_reader.read(f'../data/raw/{filename}', only_gps=False)
+    preprocess_tcx(filename)
+    tcx_reader = TCXReader()
+
+    raw = get_paths()['raw']
+    data = tcx_reader.read(f'{raw}/{filename}', only_gps=False)
     track_name = filename.split('.')[0]
     output = []
     for trackpoint in data.trackpoints:
-        assert get_expected_format() == ('time','distance','lat','lon','elev','power','cadence','heart_rate')
+        assert get_expected_format() == ('time', 'distance', 'lat', 'lon', 'elev', 'power', 'cadence', 'heart_rate')
         tpd = trackpoint.to_dict()
         final_row_output = [standardize_time(tpd.get('time')),
                             tpd.get('distance'),
@@ -120,16 +180,20 @@ def parse_tcx(filename):
         output.append(final_row_output)
     write_output(filename, output, track_name)
 
+
 def unzip_file(filename):
     import shutil
-    #filename with .gz
+
+    raw = get_paths()['raw']
+    # filename with .gz
     original_filename = filename
-    #filename without .gz
+    # filename without .gz
     new_filename = filename[:-3]
-    with gzip.open(f'../data/raw/{original_filename}', 'rb') as f_in:
-        with open(f'../data/raw/{new_filename}', 'wb') as f_out:
+    with gzip.open(f'{raw}/{original_filename}', 'rb') as f_in:
+        with open(f'{raw}/{new_filename}', 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
     return new_filename
+
 
 def parse_file(filename):
     if filename[-3:] == 'gpx':
@@ -147,27 +211,16 @@ def parse_file(filename):
     else:
         return False, filename
 
-def parse_all_files(directory):
-    all_files = os.listdir(directory)
+
+from tqdm import tqdm
+
+
+def parse_all_files():
+    raw = get_paths()['raw']
+    all_files = os.listdir(raw)
     failed = []
     for file in tqdm(all_files):
         success, name = parse_file(file)
         if not success:
             failed.append(name)
     return failed
-
-parse_gpx('Lunch_Ride.gpx')
-
-filename = '1138501591.fit.gz'
-parse_fit(filename)
-
-filename = '9029218105.tcx'
-
-from tcxreader.tcxreader import TCXReader, TCXTrackPoint
-tcx_reader = TCXReader()
-
-#This is just an XML file - I may be able to do the parsing on my own.
-#TCXReader assumes all cadence values will be ints
-data = tcx_reader.read(f'data/raw/example_issue.txt')
-
-missing_files = parse_all_files('data/raw')
