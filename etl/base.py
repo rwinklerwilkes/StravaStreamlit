@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import streamlit as st
+from etl.process_activity import get_expected_format
 
 
 @st.cache_data
@@ -16,7 +17,7 @@ def get_activity_name(track_name) -> str:
 
 @st.cache_data
 def get_data(filename):
-    data = pd.read_csv(f'data/processed/{filename}.csv', header=None, names=['time','lat','lon','elev','power'])
+    data = pd.read_csv(f'data/processed/{filename}.csv', header=None, names=get_expected_format())
     data['time'] = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S')
     activity_name = get_activity_name(filename)
-    return activity_name, data[['time','lat','lon','elev','power']]
+    return activity_name, data

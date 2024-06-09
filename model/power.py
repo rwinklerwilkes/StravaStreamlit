@@ -1,5 +1,9 @@
+from matplotlib import pyplot as plt
+import seaborn as sns
+import streamlit as st
 import pandas as pd
 import numpy as np
+from etl import base as b
 
 def power_curve_breakpoints(df):
     SECONDS_MAX = 300
@@ -32,11 +36,18 @@ def calculate_power_curve(df):
     power_curve_df = power_curve_df.dropna(axis=0)
     return power_curve_df
 
+@st.cache_data
+def get_power_curve(file_to_map):
+    if file_to_map:
+        power_curve = calculate_power_curve_file(file_to_map)
+        return power_curve
+    else:
+        return None
+
 def calculate_power_curve_file(filename_without_ext):
-    df = pd.read_csv(f'data/processed/{filename_without_ext}.csv',
-                     header=None,
-                     names=['time', 'lat', 'lon', 'elev', 'power'])
+    _, df = b.get_data(filename_without_ext)
     return calculate_power_curve(df)
+
 
 def calculate_power_zones(ftp):
     breakpoints = {'Active Recovery':0,
@@ -48,3 +59,14 @@ def calculate_power_zones(ftp):
                    'Neuromuscular':1.5}
     zones = {name:ftp*pct for name,pct in breakpoints.items()}
     return zones
+
+@st.cache_data
+def get_power_curve_plot(power_curve):
+    fig, ax = plt.subplots(1,1,figsize=(14,8))
+    lp = sns.lineplot(x='window',y='power',data=power_curve, ax=ax)
+    lp.set(xscale='log')
+    lp.set(xticks=[1,15,60,300,600,1200, 2400, 3600])
+    lp.set(xticklabels=[1,15,60,300,600,1200, 2400, 3600])
+    ax.set_xlim(1,power_curve.shape[0])
+    ax.set_ylim(0,1000)
+    return fig

@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from etl import analysis as ay
 from etl import base as b
 from etl import map
-from model.power import calculate_power_curve_file
+from model.power import get_power_curve, get_power_curve_plot
 from menu import menu
 
 @st.cache_data
@@ -15,14 +15,6 @@ def process_data_analysis(data):
     ss = [(p, summary_statistics[p]) for p in preferred_order]
     return data, ss
 
-@st.cache_data
-def get_power_curve(file_to_map):
-    if file_to_map:
-        power_curve = calculate_power_curve_file(file_to_map)
-        return power_curve
-    else:
-        return None
-
 def fix_color_for_power(mapped, power_curve, power_window):
     if power_window is not None:
         start_power_loc, end_power_loc = power_curve.loc[power_curve['window'] == power_window, ['start', 'end']].values[0]
@@ -31,17 +23,6 @@ def fix_color_for_power(mapped, power_curve, power_window):
         return mapped, max_power
     else:
         return mapped, None
-
-@st.cache_data
-def get_power_curve_plot(power_curve):
-    fig, ax = plt.subplots(1,1,figsize=(14,8))
-    lp = sns.lineplot(x='window',y='power',data=power_curve, ax=ax)
-    lp.set(xscale='log')
-    lp.set(xticks=[1,15,60,300,600,1200, 2400, 3600])
-    lp.set(xticklabels=[1,15,60,300,600,1200, 2400, 3600])
-    ax.set_xlim(1,mapped.shape[0])
-    ax.set_ylim(0,1000)
-    return fig
 
 menu()
 column_to_graph = st.selectbox('Column for Heatmap',('elev','speed','speed_10s_avg'))
