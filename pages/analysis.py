@@ -3,6 +3,7 @@ from menu import menu
 from etl import map as m
 from etl import base as b
 from model import power
+from model import speed
 from pages import preprocess as p
 
 
@@ -15,15 +16,18 @@ mp = st.empty()
 mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')
 
 #speed
-
+#TODO: These two plotting functions aren't working as expected, plots are currently blank
+fig = speed.get_speed_time_plot(df)
+st.pyplot(fig)
 
 #power
-power_curve = power.get_power_curve(file_to_map)
-fig = power.get_power_curve_plot(power_curve)
+fig = power.get_power_time_plot(df)
 st.pyplot(fig)
 
 #hr
-
+# fig = hr.get_hr_time_plot(df)
+# st.pyplot(fig)
 
 #cadence
-
+# fig = get_cadence_time_plot(df)
+# st.pyplot(fig)

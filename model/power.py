@@ -70,3 +70,14 @@ def get_power_curve_plot(power_curve):
     ax.set_xlim(1,power_curve.shape[0])
     ax.set_ylim(0,1000)
     return fig
+
+@st.cache_data
+def get_power_time_plot(df):
+    fig, ax = plt.subplots(1,1,figsize=(14,8))
+    lp = sns.lineplot(x='time',y='power',data=df, ax=ax)
+    lp.set(xscale='log')
+    lp.set(xticks=[1,15,60,300,600,1200, 2400, 3600])
+    lp.set(xticklabels=[1,15,60,300,600,1200, 2400, 3600])
+    ax.set_xlim(1,df.shape[0])
+    ax.set_ylim(0,1000)
+    return fig
