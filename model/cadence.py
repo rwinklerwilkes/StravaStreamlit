@@ -7,6 +7,7 @@ from model import utilities as u
 
 @st.cache_data
 def get_cadence_time_plot(df, _fig, _ax):
+    #underscore in params ensures Streamlit won't try to hash
     df = u.sort_and_add_times(df)
     if np.isnan(df['cadence'].max()):
         has_cadence = False

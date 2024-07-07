@@ -17,6 +17,7 @@ def calculate_hr_zones(max_heart_rate):
 
 @st.cache_data
 def get_hr_time_plot(df, _fig, _ax):
+    # underscore in params ensures Streamlit won't try to hash
     df = u.sort_and_add_times(df)
     if np.isnan(df['heart_rate'].max()):
         has_hr = False

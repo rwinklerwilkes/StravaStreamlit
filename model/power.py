@@ -75,6 +75,7 @@ def get_power_curve_plot(power_curve):
 
 @st.cache_data
 def get_power_time_plot(df, _fig, _ax):
+    # underscore in params ensures Streamlit won't try to hash
     df = u.sort_and_add_times(df)
     lp = sns.lineplot(x='elapsed_total',y='power',data=df, ax=_ax)
     _ax.set_xlim(1,df.shape[0])

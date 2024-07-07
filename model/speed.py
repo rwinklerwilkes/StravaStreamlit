@@ -36,6 +36,7 @@ def calculate_speed(df):
 
 @st.cache_data
 def get_speed_time_plot(df, _fig, _ax):
+    # underscore in params ensures Streamlit won't try to hash
     if 'speed' not in df.columns:
         df = calculate_speed(df)
 
