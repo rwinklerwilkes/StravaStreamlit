@@ -1,9 +1,11 @@
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 import seaborn as sns
 import streamlit as st
 import pandas as pd
 import numpy as np
 from etl import base as b
+from model import utilities as u
 
 def power_curve_breakpoints(df):
     SECONDS_MAX = 300
@@ -73,11 +75,13 @@ def get_power_curve_plot(power_curve):
 
 @st.cache_data
 def get_power_time_plot(df):
+    df = u.sort_and_add_times(df)
     fig, ax = plt.subplots(1,1,figsize=(14,8))
-    lp = sns.lineplot(x='time',y='power',data=df, ax=ax)
-    lp.set(xscale='log')
-    lp.set(xticks=[1,15,60,300,600,1200, 2400, 3600])
-    lp.set(xticklabels=[1,15,60,300,600,1200, 2400, 3600])
+    lp = sns.lineplot(x='elapsed_total',y='power',data=df, ax=ax)
     ax.set_xlim(1,df.shape[0])
-    ax.set_ylim(0,1000)
+
+    max_power = df['power'].max()
+    ax.set_ylim(0, max_power * 1.1)
+    ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
+    ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Power (W)')
     return fig

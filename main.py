@@ -48,3 +48,5 @@ if mapped is not None:
 
     fig = get_power_curve_plot(power_curve)
     st.pyplot(fig)
+
+#Test file - 10216028842

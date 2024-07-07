@@ -4,6 +4,7 @@ from etl import map as m
 from etl import base as b
 from model import power
 from model import speed
+from model import heart_rate
 from pages import preprocess as p
 
 
@@ -16,17 +17,20 @@ mp = st.empty()
 mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')
 
 #speed
-#TODO: These two plotting functions aren't working as expected, plots are currently blank
+st.subheader('Speed')
 fig = speed.get_speed_time_plot(df)
 st.pyplot(fig)
 
 #power
+st.subheader('Power')
 fig = power.get_power_time_plot(df)
 st.pyplot(fig)
 
 #hr
-# fig = hr.get_hr_time_plot(df)
-# st.pyplot(fig)
+has_hr, fig = heart_rate.get_hr_time_plot(df)
+if has_hr:
+    st.subheader('Heart Rate')
+    st.pyplot(fig)
 
 #cadence
 # fig = get_cadence_time_plot(df)
