@@ -35,16 +35,15 @@ def calculate_speed(df):
     return df
 
 @st.cache_data
-def get_speed_time_plot(df):
+def get_speed_time_plot(df, _fig, _ax):
     if 'speed' not in df.columns:
         df = calculate_speed(df)
 
-    fig, ax = plt.subplots(1, 1, figsize=(14, 8))
-    lp = sns.lineplot(x='elapsed_total', y='speed', data=df, ax=ax)
-    ax.set_xlim(1, df.shape[0])
+    lp = sns.lineplot(x='elapsed_total', y='speed', data=df, ax=_ax)
+    _ax.set_xlim(1, df.shape[0])
     max_speed = df['speed'].max()
-    ax.set_ylim(0, max_speed * 1.1)
-    ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
-    ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Speed (MPH)')
+    _ax.set_ylim(0, max_speed * 1.1)
+    _ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
+    _ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Speed (MPH)')
 
-    return fig
+    return _fig

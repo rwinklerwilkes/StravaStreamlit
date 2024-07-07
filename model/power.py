@@ -74,14 +74,13 @@ def get_power_curve_plot(power_curve):
     return fig
 
 @st.cache_data
-def get_power_time_plot(df):
+def get_power_time_plot(df, _fig, _ax):
     df = u.sort_and_add_times(df)
-    fig, ax = plt.subplots(1,1,figsize=(14,8))
-    lp = sns.lineplot(x='elapsed_total',y='power',data=df, ax=ax)
-    ax.set_xlim(1,df.shape[0])
+    lp = sns.lineplot(x='elapsed_total',y='power',data=df, ax=_ax)
+    _ax.set_xlim(1,df.shape[0])
 
     max_power = df['power'].max()
-    ax.set_ylim(0, max_power * 1.1)
-    ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
-    ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Power (W)')
-    return fig
+    _ax.set_ylim(0, max_power * 1.1)
+    _ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
+    _ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Power (W)')
+    return _fig
