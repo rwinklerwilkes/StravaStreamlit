@@ -1,8 +1,8 @@
 import streamlit as st
 import numpy as np
 import seaborn as sns
-from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from matplotlib import pyplot as plt
 from model import utilities as u
 
 def calculate_hr_zones(max_heart_rate):
@@ -35,3 +35,34 @@ def get_hr_time_plot(df, _fig, _ax):
         _ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
         _ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Heart Rate')
         return True, _fig
+
+@st.cache_data
+def get_hr_zone_plot(df):
+    df = u.sort_and_add_times(df)
+    zones = calculate_hr_zones(191)
+
+    zone_labels = zones.keys()
+    zone_mins = list(zones.values())
+    for i, label in enumerate(zone_labels):
+        mn = zone_mins[i]
+        try:
+            mx = zone_mins[i+1]
+        except IndexError:
+            mx = np.inf
+        df.loc[(df['heart_rate']>=mn)&(df['heart_rate']<mx),'label'] = label
+
+    fig, ax = plt.subplots(1,1,figsize=(14,8))
+    df_agg = df.groupby('label').agg({'heart_rate':'count'}).reset_index()
+    bp = sns.barplot(data=df_agg, x='heart_rate', y='label', ax=ax)
+    ax.set(xlabel='Time in Zone (Seconds)', ylabel='Heart Rate Zone')
+
+    return fig
+
+# from etl.base import get_data
+# from model import utilities as u
+# name, df = get_data('10216028842')
+# df = u.sort_and_add_times(df)
+# zones = calculate_hr_zones(191)
+
+# import seaborn as sns
+# sns.histplot(data=df, x='heart_rate', bins=list(zones.values()))
