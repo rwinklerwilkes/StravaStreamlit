@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 import numpy as np
 import seaborn as sns
@@ -53,6 +54,15 @@ def get_hr_zone_plot(df):
 
     fig, ax = plt.subplots(1,1,figsize=(14,8))
     df_agg = df.groupby('label').agg({'heart_rate':'count'}).reset_index()
+
+    for label in zone_labels:
+        if df_agg.loc[df_agg['label']==label,:].count()['label'] == 0:
+            new_label = pd.DataFrame([[label,0]],columns=['label','heart_rate'])
+            df_agg = pd.concat([df_agg, new_label])
+
+    df_agg['sort_order'] = df_agg['label'].apply(lambda x: list(zone_labels).index(x))
+    df_agg = df_agg.sort_values(by='sort_order')
+
     bp = sns.barplot(data=df_agg, x='heart_rate', y='label', ax=ax)
     ax.set(xlabel='Time in Zone (Seconds)', ylabel='Heart Rate Zone')
 
