@@ -85,3 +85,34 @@ def get_power_time_plot(df, _fig, _ax):
     _ax.xaxis.set_major_locator(MultipleLocator(60))  # show every 5th tick
     _ax.set(xlabel='Time Elapsed (Seconds)', ylabel='Power (W)')
     return _fig
+
+@st.cache_data
+def get_power_curve_zone_plot(df, ftp):
+    df = u.sort_and_add_times(df)
+    zones = calculate_power_zones(ftp)
+
+    zone_labels = zones.keys()
+    zone_mins = list(zones.values())
+    for i, label in enumerate(zone_labels):
+        mn = zone_mins[i]
+        try:
+            mx = zone_mins[i+1]
+        except IndexError:
+            mx = np.inf
+        df.loc[(df['power']>=mn)&(df['power']<mx),'label'] = label
+
+    fig, ax = plt.subplots(1,1,figsize=(14,8))
+    df_agg = df.groupby('label').agg({'power':'count'}).reset_index()
+
+    for label in zone_labels:
+        if df_agg.loc[df_agg['label']==label,:].count()['label'] == 0:
+            new_label = pd.DataFrame([[label,0]],columns=['label','power'])
+            df_agg = pd.concat([df_agg, new_label])
+
+    df_agg['sort_order'] = df_agg['label'].apply(lambda x: list(zone_labels).index(x))
+    df_agg = df_agg.sort_values(by='sort_order')
+
+    bp = sns.barplot(data=df_agg, x='power', y='label', ax=ax)
+    ax.set(xlabel='Time in Zone (Seconds)', ylabel='Power Zone')
+
+    return fig
