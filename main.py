@@ -41,12 +41,16 @@ if mapped is not None:
         for description, value_units in summary_statistics:
             value, unit = value_units
             st.text(f'{description}:\t{value:0.2f} {unit}')
-        power_slider = st.select_slider('Power Selector', options=power_curve['window'].values)
-        mapped, max_power = fix_color_for_power(mapped, power_curve, power_slider)
-        st.text(f'Max {power_slider} second power: {max_power:.0f} watts')
-    mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')
+        try:
+            power_values = power_curve['window'].values
+            power_slider = st.select_slider('Power Selector', options=power_values)
+            mapped, max_power = fix_color_for_power(mapped, power_curve, power_slider)
+            st.text(f'Max {power_slider} second power: {max_power:.0f} watts')
 
-    fig = get_power_curve_plot(power_curve)
-    st.pyplot(fig)
+            fig = get_power_curve_plot(power_curve)
+            st.pyplot(fig)
+        except:
+            st.text('No power attached to ride.')
+    mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')
 
 #Test file - 10216028842

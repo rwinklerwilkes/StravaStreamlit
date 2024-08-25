@@ -15,6 +15,12 @@ def get_activity_name(track_name) -> str:
     activity_name = metadata.loc[metadata['track_name']==track_name,'activity_name'].drop_duplicates().values[0]
     return activity_name
 
+# def get_activity_name(track_name) -> str:
+#     metadata = pd.read_csv('data/metadata/activities.csv',header=None)
+#     metadata.columns = ['original_filename','track_name','activity_name']
+#     activity_name = metadata.loc[metadata['track_name']==track_name,'activity_name'].drop_duplicates().values[0]
+#     return activity_name
+
 @st.cache_data
 def get_data(filename):
     data = pd.read_csv(f'data/processed/{filename}.csv', header=None, names=get_expected_format())
