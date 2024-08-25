@@ -163,4 +163,4 @@ cython_debug/
 
 data/*
 .idea/
-credentials/*
+credentials/*.json

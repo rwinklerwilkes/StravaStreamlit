@@ -3,7 +3,6 @@ import os
 import streamlit as st
 from etl.process_activity import get_expected_format
 
-
 @st.cache_data
 def get_processed_files() -> list:
     files_available = os.listdir('data/processed/')
