@@ -26,7 +26,8 @@ def fix_color_for_power(mapped, power_curve, power_window):
 
 menu()
 column_to_graph = st.selectbox('Column for Heatmap',('elev','speed','speed_10s_avg'))
-file_to_map = st.selectbox('File to Map',b.get_processed_files(),index=None)
+processed_files, processed_files_with_details = b.get_processed_files()
+file_to_map = st.selectbox('File to Map',processed_files,index=None)
 st.session_state['last_file'] = file_to_map
 
 power_curve = get_power_curve(file_to_map)

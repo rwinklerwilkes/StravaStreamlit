@@ -2,7 +2,7 @@ import streamlit as st
 from etl import base as b
 
 def preprocess():
-    pf = b.get_processed_files()
+    pf, pf_with_details = b.get_processed_files()
     if 'last_file' not in st.session_state:
         last_file = None
         idx = None
