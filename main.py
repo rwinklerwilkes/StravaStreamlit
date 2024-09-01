@@ -1,6 +1,7 @@
 import streamlit as st
 import seaborn as sns
 from matplotlib import pyplot as plt
+from pages.preprocess import preprocess
 from etl import analysis as ay
 from etl import base as b
 from etl import map
@@ -26,12 +27,12 @@ def fix_color_for_power(mapped, power_curve, power_window):
 
 menu()
 column_to_graph = st.selectbox('Column for Heatmap',('elev','speed','speed_10s_avg'))
-processed_files, processed_files_with_details = b.get_processed_files()
-file_to_map = st.selectbox('File to Map',processed_files,index=None)
+
+file_idx, file_to_map = preprocess()
 st.session_state['last_file'] = file_to_map
 
-power_curve = get_power_curve(file_to_map)
-mapped, summary_statistics = map.map_file(file_to_map, column_to_graph)
+power_curve = get_power_curve(file_idx)
+mapped, summary_statistics = map.map_file(file_idx, column_to_graph)
 
 if mapped is not None:
     left_column, right_column = st.columns(2)

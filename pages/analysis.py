@@ -15,9 +15,9 @@ def define_matplotlib_fig_and_ax():
     return fig, ax
 
 menu()
-file_to_map = p.preprocess()
-name, df = b.get_data(file_to_map)
-mapped, _ = m.map_file(file_to_map, 'elev')
+file_idx, file_to_map = p.preprocess()
+name, df = b.get_data(file_idx)
+mapped, _ = m.map_file(file_idx, 'elev')
 #map
 mp = st.empty()
 mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')

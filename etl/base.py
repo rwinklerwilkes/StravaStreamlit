@@ -1,11 +1,15 @@
+from typing import Tuple, List, Any
+
 import pandas as pd
 import os
 import streamlit as st
+from pandas import DataFrame as PandasDataFrame
+
 from etl.process_activity import get_expected_format
 from utilities import strava
 
 @st.cache_data
-def get_processed_files() -> list:
+def get_processed_files() -> tuple[list[str], PandasDataFrame]:
     files_available = os.listdir('data/processed/')
     processed_files = strava.get_name_and_date(files_available)
     return [i[:-4] for i in files_available], processed_files
