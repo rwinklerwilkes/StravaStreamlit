@@ -68,4 +68,14 @@ def calculate_relative_effort_by_week(activities:PandasDataFrame) -> PandasDataF
     activities['combined_relative_effort'] = activities['pf_effort'].combine_first(activities['Relative Effort'])
     effort_by_week = activities.groupby(['year','week']).agg({'combined_relative_effort':'sum','Activity Date':['min','max']}).reset_index()
     effort_by_week.columns=['year','week','combined_relative_effort','activity_min_date','activity_max_date']
+
+    _ = """By the way, relative effort seems to be calculated something like:
+    0.25 * minutes at Heart Rate Z1
+    0.50 * minutes at Heart Rate Z2
+    1.50 * minutes at Heart Rate Z3
+    2.00 * minutes at Heart Rate Z4
+    ???? * minutes at Heart Rate Z5 - I basically never hit this zone so no idea what the factor may be. Maybe 3?
+    This isn't exactly right, but I got pretty close for the few activities that I spot checked with these factors.
+    """
+
     return effort_by_week
