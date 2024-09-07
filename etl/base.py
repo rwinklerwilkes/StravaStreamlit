@@ -15,7 +15,8 @@ def get_processed_files() -> tuple[list[str], PandasDataFrame]:
     return [i[:-4] for i in files_available], processed_files
 
 def get_activity_name(track_name) -> str:
-    return strava.get_activity_name(track_name)
+    activities = strava.activities
+    return strava.get_activity_name(activities, track_name)
 
 # def get_activity_name(track_name) -> str:
 #     metadata = pd.read_csv('data/metadata/activities.csv',header=None)

@@ -8,16 +8,16 @@
 import pandas as pd
 import numpy as np
 from pandas import DataFrame as PandasDataFrame
+import streamlit as st
 
+@st.cache_data
 def load_activities_from_archive() -> PandasDataFrame:
     activities = pd.read_csv('data/strava/activities.csv')
     activities['original_filename'] = activities['Filename'].str.split('/').str[-1].str.split('.').str[0]
     activities['Activity Date'] = pd.to_datetime(activities['Activity Date'], format='%b %d, %Y, %I:%M:%S %p')
     return activities
 
-activities = load_activities_from_archive()
-
-def get_activity_detail(activity_id, column):
+def get_activity_detail(activities, activity_id, column):
     try:
         detail = activities.loc[activities['Activity ID'] == activity_id, column][0]
     except KeyError:
@@ -25,7 +25,7 @@ def get_activity_detail(activity_id, column):
         detail = None
     return detail
 
-def get_activity_name(activity_id):
+def get_activity_name(activities, activity_id):
     try:
         detail = activities.loc[activities['Activity ID'] == activity_id, 'Activity Name'][0]
     except KeyError:
@@ -39,7 +39,8 @@ def get_activity_name(activity_id):
     return detail
 
 def get_activity_date(activity_id):
-    return get_activity_detail(activity_id, 'Activity Date')
+    activities = load_activities_from_archive()
+    return get_activity_detail(activities, activity_id, 'Activity Date')
 
 def get_name_and_date(files_available) -> PandasDataFrame:
     fa_pd = pd.DataFrame(files_available, columns=['original_filename_with_ext'])
@@ -50,7 +51,8 @@ def get_name_and_date(files_available) -> PandasDataFrame:
     #Ensure dates are formatted correctly so they get ordered correctly later
     return details
 
-def calculate_relative_effort_by_week(activities:PandasDataFrame) -> PandasDataFrame:
+@st.cache_data
+def calculate_relative_effort_by_week(activities:PandasDataFrame) -> tuple[PandasDataFrame,PandasDataFrame]:
     """Calculates the relative effort for each activity. Uses a flag from Strava's data indicating whether
     to use the calculated relative effort based on heart rate or the user's perceived effort imported manually.
     The "Prefer Perceived Exertion" flag isn't perfect because it will be set to 0 even where the relative effort
@@ -78,4 +80,7 @@ def calculate_relative_effort_by_week(activities:PandasDataFrame) -> PandasDataF
     This isn't exactly right, but I got pretty close for the few activities that I spot checked with these factors.
     """
 
-    return effort_by_week
+    return activities, effort_by_week
+
+activities = load_activities_from_archive()
+activites_with_effort, effort_by_week = calculate_relative_effort_by_week(activities)
