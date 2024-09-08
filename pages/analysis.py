@@ -26,13 +26,15 @@ mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')
 st.subheader('Speed')
 fig, ax = define_matplotlib_fig_and_ax()
 fig = speed.get_speed_time_plot(df,fig,ax)
-st.pyplot(fig)
+if fig:
+    st.pyplot(fig)
 
 #power
-st.subheader('Power')
 fig, ax = define_matplotlib_fig_and_ax()
-fig = power.get_power_time_plot(df,fig,ax)
-st.pyplot(fig)
+has_power, fig = power.get_power_time_plot(df,fig,ax)
+if has_power:
+    st.subheader('Power')
+    st.pyplot(fig)
 
 #hr
 fig, ax = define_matplotlib_fig_and_ax()

@@ -1,4 +1,7 @@
+import functools
+
 from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 import seaborn as sns
 import streamlit as st
@@ -6,6 +9,17 @@ import pandas as pd
 import numpy as np
 from etl import base as b
 from model import utilities as u
+
+
+def validate_power(func):
+    @functools.wraps(func)
+    def wrapper(df, *args, **kwargs):
+        has_power = df.loc[~df['power'].isna(), ['power']].count()['power'] > 0
+        if not has_power:
+            return False, None
+        else:
+            return True, func(df, *args, **kwargs)
+    return wrapper
 
 def power_curve_breakpoints(df):
     SECONDS_MAX = 300
@@ -62,6 +76,7 @@ def calculate_power_zones(ftp):
     zones = {name:ftp*pct for name,pct in breakpoints.items()}
     return zones
 
+@validate_power
 @st.cache_data
 def get_power_curve_plot(power_curve):
     fig, ax = plt.subplots(1,1,figsize=(14,8))
@@ -73,6 +88,7 @@ def get_power_curve_plot(power_curve):
     ax.set_ylim(0,1000)
     return fig
 
+@validate_power
 @st.cache_data
 def get_power_time_plot(df, _fig, _ax):
     # underscore in params ensures Streamlit won't try to hash
@@ -87,7 +103,15 @@ def get_power_time_plot(df, _fig, _ax):
     return _fig
 
 @st.cache_data
-def get_power_curve_zone_plot(df, ftp):
+def get_power_curve_zone_plot(df: pd.DataFrame, ftp:int) -> Figure:
+    """
+    Mimics the functionality on the "Zone Distribution" tab of Strava. Categorizes a ride into the amount of time
+    spent in each power zone, https://www.trainingpeaks.com/blog/power-training-levels/.
+    FTP is a necessary param because it determines the breakpoints for each zone.
+    :param df: Dataframe containing the second-level details for the ride.
+    :param ftp: Rider's functional threshold power
+    :return: Matplotlib figure with the power zone plot
+    """
     df = u.sort_and_add_times(df)
     zones = calculate_power_zones(ftp)
 
@@ -116,3 +140,4 @@ def get_power_curve_zone_plot(df, ftp):
     ax.set(xlabel='Time in Zone (Seconds)', ylabel='Power Zone')
 
     return fig
+

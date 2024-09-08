@@ -49,8 +49,9 @@ if mapped is not None:
             mapped, max_power = fix_color_for_power(mapped, power_curve, power_slider)
             st.text(f'Max {power_slider} second power: {max_power:.0f} watts')
 
-            fig = get_power_curve_plot(power_curve)
-            st.pyplot(fig)
+            has_power, fig = get_power_curve_plot(power_curve)
+            if has_power:
+                st.pyplot(fig)
         except:
             st.text('No power attached to ride.')
     mp.map(mapped, latitude='lat', longitude='lon', size=0.1, color='color')
