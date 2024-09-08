@@ -34,5 +34,8 @@ fig.update_layout(xaxis = dict(
     tickvals = nearby_weeks['row_number'].values, #change 2
     ticktext = nearby_weeks['label'].values),
     font=dict(size=18, color="black"))
+
+mx_power = max(nearby_weeks['combined_relative_effort'])
+fig.update_yaxes(range=[0, mx_power*1.1])
 # fig.show()
 st.plotly_chart(fig,use_container_width=True)
