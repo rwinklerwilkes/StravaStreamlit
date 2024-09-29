@@ -141,9 +141,19 @@ def get_power_curve_zone_plot(df: pd.DataFrame, ftp:int) -> Figure:
 
     return fig
 
+def check_has_power(data:pd.DataFrame) -> bool:
+    has_power = np.sum(data['power'].count()) > 0
+    return has_power
+
+def calculate_total_work(data:pd.DataFrame) -> float:
+    has_power = check_has_power(data)
+    total_work = None
+    if has_power:
+        total_work = data['power'].sum()
+    return total_work
 
 def calculate_average_power(data:pd.DataFrame) -> float:
-    has_power = np.sum(data['power'].count()) > 0
+    has_power = check_has_power(data)
     average_power = None
     if has_power:
         average_power = data['power'].mean()
@@ -153,7 +163,7 @@ def calculate_average_power(data:pd.DataFrame) -> float:
 #In case it ever gets broken, this URL references Training and Racing with a Power Meter by Hunter and Allen
 
 def calculate_normalized_power(data:pd.DataFrame) -> float:
-    has_power = np.sum(data['power'].count()) > 0
+    has_power = check_has_power(data)
     normalized_power = None
 
     if has_power:
@@ -165,7 +175,7 @@ def calculate_normalized_power(data:pd.DataFrame) -> float:
     return normalized_power
 
 def calculate_intensity_factor(data:pd.DataFrame, ftp: float) -> tuple[float,float]:
-    has_power = np.sum(data['power'].count()) > 0
+    has_power = check_has_power(data)
     intensity_factor = None
     tss = None
     if has_power:

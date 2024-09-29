@@ -53,6 +53,7 @@ def summary_statistics(data):
     output['Max Speed'] = (data['speed'].max(),'mph')
     output['Average Power'] = (power.calculate_average_power(data),'watts')
     output['Normalized Power'] = (power.calculate_normalized_power(data),'watts')
+    output['Total Work'] = (power.calculate_total_work(data),'kJ')
     preferred_order = ('Distance','Total Elevation','Time Elapsed','Average Speed', 'Max Speed', 'Average Power', 'Normalized Power')
     return output, preferred_order
 

@@ -4,12 +4,10 @@ Hobby project to learn Streamlit
 ## Current TODOs:
 
 ### Overview tab
-* Calculate average power
 * Calculate weighted average power
   * May need to research how Strava calculates this
 * Calculate temperature
 * Calculate elapsed time/moving time
-* Calculate total energy output
 * Add gear
 
 ### Heart Rate tab
