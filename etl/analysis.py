@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from numpy import radians, sin, cos, sqrt, arcsin
+from etl.process_activity import get_expected_format
+from model import power
 
 def haversine(lat1, lon1, lat2, lon2):
     Rkm = 6372.8  # Earth radius in kilometers
@@ -17,7 +19,7 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 def get_data(filename):
-    data = pd.read_csv(f'data/processed/{filename}.csv', header=None, names=['time','lat','lon','elev','power'])
+    data = pd.read_csv(f'data/processed/{filename}.csv', header=None, names=get_expected_format())
     data['time'] = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S')
     return data
 
@@ -49,7 +51,9 @@ def summary_statistics(data):
     output['Time Elapsed'] = ((data['time'].max() - data['time'].min()).total_seconds()/60,'minutes')
     output['Average Speed'] = (data['speed'].mean(),'mph')
     output['Max Speed'] = (data['speed'].max(),'mph')
-    preferred_order = ('Distance','Total Elevation','Time Elapsed','Average Speed', 'Max Speed')
+    output['Average Power'] = (power.calculate_average_power(data),'watts')
+    output['Normalized Power'] = (power.calculate_normalized_power(data),'watts')
+    preferred_order = ('Distance','Total Elevation','Time Elapsed','Average Speed', 'Max Speed', 'Average Power', 'Normalized Power')
     return output, preferred_order
 
 
@@ -73,7 +77,7 @@ def calculate_power_curve(data):
     return power_curve
 
 def example():
-    data = get_data('3934663673')
+    data = get_data('9296055957')
     data = calculate_prior_rows(data)
     data = calculate_speeds(data)
     stats, _ = summary_statistics(data)

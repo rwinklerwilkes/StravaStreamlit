@@ -141,3 +141,37 @@ def get_power_curve_zone_plot(df: pd.DataFrame, ftp:int) -> Figure:
 
     return fig
 
+
+def calculate_average_power(data:pd.DataFrame) -> float:
+    has_power = np.sum(data['power'].count()) > 0
+    average_power = None
+    if has_power:
+        average_power = data['power'].mean()
+    return average_power
+
+#Both of these calculated per https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46
+#In case it ever gets broken, this URL references Training and Racing with a Power Meter by Hunter and Allen
+
+def calculate_normalized_power(data:pd.DataFrame) -> float:
+    has_power = np.sum(data['power'].count()) > 0
+    normalized_power = None
+
+    if has_power:
+        rolling_average = data['power'].rolling(30).mean()
+        rolling_average = rolling_average[rolling_average>0]
+        rolling_average = rolling_average**4
+        normalized_power = rolling_average.mean()**0.25
+
+    return normalized_power
+
+def calculate_intensity_factor(data:pd.DataFrame, ftp: float) -> tuple[float,float]:
+    has_power = np.sum(data['power'].count()) > 0
+    intensity_factor = None
+    tss = None
+    if has_power:
+        norm_power = calculate_normalized_power(data)
+        t = (max(data['time']) - min(data['time'])).seconds
+        intensity_factor = norm_power/ftp
+        tss = (t*intensity_factor*norm_power)/(ftp*36)
+
+    return intensity_factor, tss
